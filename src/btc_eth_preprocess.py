@@ -29,7 +29,7 @@ train_Assets = train.groupby("Asset_ID")
 btc = train_Assets.get_group(1).set_index("timestamp")
 eth = train_Assets.get_group(6).set_index("timestamp")
 
-btc = btc.reindex(range(eth.index[0], eth.index[-1]+60, 60), method='pad')
+btc = btc.reindex(range(btc.index[0], btc.index[-1]+60, 60), method='pad')
 eth = eth.reindex(range(eth.index[0], eth.index[-1]+60, 60), method='pad')
 
 totimestamp = lambda s: np.int32(time.mktime(datetime.strptime(s, "%d/%m/%Y").timetuple()))
