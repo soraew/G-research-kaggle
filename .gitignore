@@ -1,5 +1,6 @@
+.DS_Store
 memos/
 data/
-.DS_Store
-.ipynb_checkpoints
+.ipynb_checkpoints/
 gresearch_crypto/
+__pycache__/
