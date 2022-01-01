@@ -2,6 +2,8 @@
 from datetime import datetime
 import time
 import lightgbm
+from tqdm import tqdm
+
 
 #plotting
 import matplotlib.pyplot as plt
@@ -14,6 +16,12 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import scipy.stats as stats
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import make_scorer
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
+from sklearn.datasets import make_classification
 
 # models
 from sklearn.preprocessing import StandardScaler
@@ -21,26 +29,39 @@ from lightgbm import LGBMRegressor
 
 # relative imports
 from get_feats import get_features
+from random_search import random_search_lgbm
 
 SEED = 2021
-data_root = "data/"
+data_root = "../data/"
 
 
 
-df_features_targets = get_features(data_root)
+if __name__ == "__main__":
+    # using only bitcoin and etherium data
+    df_features_targets = get_features(data_root)
+    df_features_targets.drop(columns=["Target_eth", "beta_eth"], inplace = True)
 
-df_features_targets.drop(["Target_eth", "beta_eth"], inplace = True)
+    y = df_features_targets[["Target_btc"]].to_numpy().squeeze()
+    X =df_features_targets.drop(columns=["Target_btc"], inplace=False).to_numpy()
 
-y = df_features_targets[["Target_btc"]].values()
-X = df_features_targets.drop(["Target_btc"], inplace=False).values()
+    # change if needed(copied from watanabe thesis of lab)
+    params_space = {
+        "max_depth":[4, 5, 6],
+        "min_data_in_leaf":[15, 20, 25],
+        "learning_rate":[0.01, 0.005],
+        "num_leaves":[25, 30, 35, 40],
+        "boosting_type":["gbdt"],
+        "objective":["regression"],
+        "random_state":[2021],
+        "reg_alpha":[1, 102],
+        "reg_lambda":[1, 1.2, 1.4]
+        }
 
-fit_params = {
-    "verbose":0,
-    "early_stopping":10,
-    "eval_metric":"rmse",
-    "eval_set":[(X, y)]
-}
-cv = TimeSeriesSplit(n_splits=5)
-model = LGBMRegressor()
 
-regplot.regression_heat_plot(model, )
+    sorted_by_coef, sorted_by_rmse = random_search_lgbm(X, y, params_space)
+    #rmse got lower than baseline(model=LGBMRegressor), however coef got worse
+    sorted_by_coef_str = map(str, sorted_by_coef)
+    sorted_by_rmse_str = map(str, sorted_by_rmse)
+    print("sorted_by_rmse", "\n".join(sorted_by_rmse_str)) 
+    print("sorted_by_rmse", "\n".join(sorted_by_coef_str))
+
