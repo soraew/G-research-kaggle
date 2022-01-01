@@ -2,6 +2,7 @@
 from datetime import datetime
 import time
 import lightgbm
+from lightgbm.basic import LightGBMError
 from tqdm import tqdm
 
 
@@ -34,7 +35,7 @@ from random_search import random_search_lgbm
 SEED = 2021
 data_root = "../data/"
 
-
+print(lightgbm.__version__)
 
 if __name__ == "__main__":
     # using only bitcoin and etherium data
@@ -57,11 +58,30 @@ if __name__ == "__main__":
         "reg_lambda":[1, 1.2, 1.4]
         }
 
+    random_search = False
+    if random_search:
+        # X and y here should be changed (grouped by KNN or something)
+        # X_sm, y_sm = X[:90000], y[:90000]
+        sorted_by_coef, sorted_by_rmse = random_search_lgbm(X_sm, y_sm, params_space)
+        #rmse got lower than baseline(model=LGBMRegressor), however coef got worse
+        sorted_by_coef_str = map(str, sorted_by_coef)
+        sorted_by_rmse_str = map(str, sorted_by_rmse)
+        print("sorted_by_rmse\n", "\n".join(sorted_by_rmse_str)) 
+        print("sorted_by_rmse\n", "\n".join(sorted_by_coef_str))
+    
+    final_params = {'max_depth': 4,
+    'min_data_in_leaf': 20,
+    'learning_rate': 0.01,
+    'num_leaves': 40,
+    'boosting_type': 'gbdt',
+    'objective': 'regression',
+    'random_state': 2021,
+    'reg_alpha': 1.2,
+    'reg_lambda': 1.4}
 
-    sorted_by_coef, sorted_by_rmse = random_search_lgbm(X, y, params_space)
-    #rmse got lower than baseline(model=LGBMRegressor), however coef got worse
-    sorted_by_coef_str = map(str, sorted_by_coef)
-    sorted_by_rmse_str = map(str, sorted_by_rmse)
-    print("sorted_by_rmse", "\n".join(sorted_by_rmse_str)) 
-    print("sorted_by_rmse", "\n".join(sorted_by_coef_str))
+    # for plotting tree
+    X_sm, y_sm = X[:90000], y[:90000]
+    model = LGBMRegressor(**final_params)
+    model.fit(X_sm, y_sm)
 
+    

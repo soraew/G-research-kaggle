@@ -67,4 +67,3 @@ def random_search_lgbm(X, y, params_space):
     'random_state': 2021,
     'reg_alpha': 1.2,
     'reg_lambda': 1.4}"""
-p
